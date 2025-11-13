@@ -1,116 +1,76 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 
-# [1] 페이지 설정
-st.set_page_config(page_title="Streamlit 요소 예시", layout="wide")
+# ----------------------
+# 상담 보조 프로그램
+# ----------------------
+st.set_page_config(page_title="상담 보조 프로그램", layout="wide")
+st.title("💬 상담 보조 프로그램")
+st.write("내담자의 성별, 나라, 종교를 선택하면 맞춤 생활 지침과 상담 주의사항을 안내합니다.")
 
-# [2] 제목
-st.title("🎈 Streamlit 페이지 요소 예시")
+# 1. 입력창: 성별, 나라, 종교 선택
+gender = st.selectbox("성별을 선택하세요", ["남성", "여성", "기타"])
+country = st.selectbox("나라를 선택하세요", ["대한민국", "미국", "이집트", "인도", "이스라엘"])
+religion = st.selectbox("종교를 선택하세요", ["기독교", "이슬람교", "힌두교", "불교", "유대교", "무교"])
 
-# [3] 부제목
-st.header("단일 페이지에 넣을 수 있는 요소들")
+# 2. 예시 데이터(실제 서비스에서는 DB/API 연동 필요)
+guides = {
+    ("남성", "이집트", "이슬람교"): {
+        "식습관": "돼지고기, 술 등은 금지되어 있습니다. 할랄 음식만 섭취해야 합니다.",
+        "종교관": "하루 5번 기도, 라마단 기간 금식 등 이슬람 율법을 따릅니다.",
+        "성별제약": "남성은 공공장소에서 여성과 신체 접촉을 피해야 하며, 복장도 단정해야 합니다."
+    },
+    ("여성", "인도", "힌두교"): {
+        "식습관": "소고기는 금지, 채식 위주 식단이 많습니다.",
+        "종교관": "힌두교 사원 출입 시 복장에 주의해야 하며, 신발을 벗고 들어가야 합니다.",
+        "성별제약": "여성은 일부 지역에서 외출·복장에 제약이 있을 수 있습니다."
+    },
+    ("남성", "미국", "기독교"): {
+        "식습관": "특별한 제약은 없으나, 일부 교파는 금주·금연을 권장합니다.",
+        "종교관": "일요일 예배 참석이 일반적입니다.",
+        "성별제약": "성별에 따른 법적 제약은 거의 없습니다."
+    },
+    ("여성", "이스라엘", "유대교"): {
+        "식습관": "코셔(유대교 율법에 맞는 음식)만 섭취, 돼지고기·해산물 금지.",
+        "종교관": "안식일(금~토)에는 노동·운전·요리 등 금지.",
+        "성별제약": "정통파 지역에서는 여성의 복장·외출에 제약이 있습니다."
+    },
+    # 기본값(매칭 안 될 때)
+    ("기타", "대한민국", "무교"): {
+        "식습관": "특별한 제약이 없습니다.",
+        "종교관": "종교적 제약이 없습니다.",
+        "성별제약": "성별에 따른 법적 제약이 없습니다."
+    },
+}
 
-# [4] 텍스트 및 마크다운
-st.write("이 페이지는 Streamlit의 다양한 요소들을 보여줍니다.")  # [5] 일반 텍스트 출력
-st.markdown("**이것은 마크다운 텍스트입니다.**")  # [6] 마크다운 형식 지원
+# 3. 결과창: 항목별 안내
+result = guides.get((gender, country, religion))
+if result is None:
+    # 매칭되는 데이터가 없으면 기본값 사용
+    result = guides[("기타", "대한민국", "무교")]
 
-# [7] 정보/경고/에러 메시지
-st.info("ℹ️ 이것은 정보 메시지입니다")  # [8] 파란 배경의 정보 박스
-st.warning("⚠️ 이것은 경고 메시지입니다")  # [9] 황색 배경의 경고 박스
-st.error("❌ 이것은 에러 메시지입니다")  # [10] 빨간 배경의 에러 박스
-st.success("✅ 이것은 성공 메시지입니다")  # [11] 초록 배경의 성공 박스
-
-st.divider()  # [12] 구분선 추가
-
-# [13] 입력 요소
-col1, col2 = st.columns(2)  # [14] 레이아웃을 2개의 열로 분할
-
+st.divider()
+st.header("생활 지침 및 법규 안내")
+col1, col2, col3 = st.columns(3)
 with col1:
-    st.subheader("입력 요소들")
-    
-    name = st.text_input("이름을 입력하세요")  # [15] 텍스트 입력 필드
-    age = st.slider("나이를 선택하세요", 0, 100, 25)  # [16] 슬라이더
-    option = st.selectbox("옵션을 선택하세요", ["옵션 1", "옵션 2", "옵션 3"])  # [17] 드롭다운 선택
-    
-    if st.button("클릭해보세요"):  # [18] 버튼
-        st.write(f"안녕하세요, {name}님! 나이: {age}, 선택: {option}")
-
+    st.subheader("🍽️ 식습관")
+    st.info(result["식습관"])
 with col2:
-    st.subheader("추가 입력 요소들")
-    
-    checkbox = st.checkbox("동의합니다")  # [19] 체크박스
-    radio = st.radio("선택하세요", ["A", "B", "C"])  # [20] 라디오 버튼
-    multi_select = st.multiselect("여러 개를 선택하세요", ["사과", "바나나", "딸기", "포도"])  # [21] 다중 선택
-    text_area = st.text_area("의견을 입력하세요", height=100)  # [22] 여러 줄 텍스트 입력
+    st.subheader("🛐 종교관")
+    st.info(result["종교관"])
+with col3:
+    st.subheader("🚻 성별에 따른 제약")
+    st.info(result["성별제약"])
 
+# 4. 종합 코멘트
 st.divider()
-
-# [23] 데이터 표시 요소
-st.subheader("데이터 표시")
-
-# [24] 데이터프레임 생성
-df = pd.DataFrame({
-    "이름": ["Alice", "Bob", "Charlie", "Diana"],
-    "나이": [25, 30, 35, 28],
-    "점수": [85, 92, 88, 95]
-})
-
-st.write("📊 테이블 데이터:")
-st.dataframe(df)  # [25] 데이터프레임을 테이블로 표시
-
-st.write("📈 메트릭 표시:")
-col1, col2, col3 = st.columns(3)  # [26] 메트릭을 3개 열로 배치
-col1.metric("총 학생 수", 4)  # [27] 메트릭(주요 수치) 표시
-col2.metric("평균 나이", 29.5)
-col3.metric("평균 점수", 90)
-
-st.divider()
-
-# [28] 차트 및 시각화
-st.subheader("차트 및 시각화")
-
-# [29] 라인 차트
-chart_data = pd.DataFrame(
-    np.random.randn(20, 3),
-    columns=['A', 'B', 'C']
-)
-st.line_chart(chart_data)  # [30] 라인 차트
-
-# [31] 막대 차트
-bar_data = pd.DataFrame({
-    "월": ["1월", "2월", "3월", "4월"],
-    "판매량": [100, 150, 120, 180]
-})
-st.bar_chart(bar_data.set_index("월"))  # [32] 막대 차트
-
-st.divider()
-
-# [33] 파일 업로드 및 다운로드
-st.subheader("파일 처리")
-
-uploaded_file = st.file_uploader("파일을 업로드하세요")  # [34] 파일 업로드
-if uploaded_file is not None:
-    st.write(f"업로드된 파일: {uploaded_file.name}")  # [35] 업로드된 파일 정보 표시
-
-if st.download_button(
-    label="데이터 다운로드",
-    data=df.to_csv(index=False),
-    file_name="data.csv",
-    mime="text/csv"
-):  # [36] 다운로드 버튼
-    st.write("파일이 다운로드되었습니다!")
-
-st.divider()
-
-# [37] 하이퍼링크
-st.markdown("[Streamlit 문서](https://docs.streamlit.io/)")  # [38] 마크다운 링크
-
-# [39] 레이아웃 - 사이드바
-with st.sidebar:  # [40] 사이드바 영역
-    st.header("사이드바")
-    sidebar_option = st.selectbox("사이드바에서 선택", ["옵션 A", "옵션 B", "옵션 C"])
-    st.write(f"선택됨: {sidebar_option}")
-
-st.write("---")  # [41] 구분선 (마크다운 방식)
-st.caption("이 앱은 Streamlit 요소들의 예시입니다.")  # [42] 작은 캡션 텍스트
+st.header("상담 시 주의사항")
+comment = "상담 시 내담자의 문화·종교·성별적 배경을 존중하며, 민감한 주제(식습관, 종교행위, 복장 등)에 대해 사전 안내와 배려가 필요합니다."
+if country == "이집트" and religion == "이슬람교":
+    comment = "이슬람 문화권에서는 종교적 율법(기도, 금식, 음식 등)과 성별 간 예절을 반드시 존중해야 하며, 라마단 기간에는 식사·음료 권유를 삼가세요."
+elif country == "인도" and religion == "힌두교":
+    comment = "힌두교 신자에게는 소고기 제공을 피하고, 사원 방문 시 복장·예절을 안내하세요."
+elif country == "이스라엘" and religion == "유대교":
+    comment = "유대교 신자와 상담 시 안식일, 코셔 식단, 정통파 지역의 성별 규범을 반드시 안내하세요."
+elif religion == "무교":
+    comment = "특별한 종교적 제약은 없으나, 개인의 가치관을 존중하는 상담이 필요합니다."
+st.success(comment)
